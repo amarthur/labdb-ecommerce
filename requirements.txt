@@ -1,4 +1,4 @@
 neo4j
 pymongo
-psycopg2
+psycopg2-binary
 Flask
