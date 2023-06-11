@@ -3,9 +3,9 @@ import redis
 from neo4j import GraphDatabase
 from pymongo import MongoClient
 
-NEO_4J_PORT = 7777
+NEO_4J_PORT = 7777 # NEED TO UPDATE
 MONGO_DB_PORT = 27017
-SQL_PORT = 9999
+SQL_PORT = 9999 # NEED TO UPDATE
 
 neo4j_driver = GraphDatabase.driver(f"bolt://localhost:{NEO_4J_PORT}", auth=("neo4j", "password"))
 
