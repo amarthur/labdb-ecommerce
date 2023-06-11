@@ -21,3 +21,11 @@ SELECT p.ID, p.Status, p.Observacoes, u.Nome, u.Email
 FROM Pedido p
 JOIN Usuario u ON p.CPF = u.CPF
 WHERE p.Status = 'Concluído';
+
+-- Calcular o ranking de cada empresa com base na quantidade de vendas realizadas pelos vendedores
+
+UPDATE Empresa SET Ranking = (
+  SELECT SUM(QuantidadeVendas)
+  FROM Vendedor
+  WHERE CNPJ = Empresa.CNPJ
+);
