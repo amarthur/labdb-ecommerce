@@ -1,0 +1,28 @@
+[
+  {
+    "_id": 1,
+    "nome": "Giz",
+    "avaliacoes": [
+      {
+        "_id": 1,
+        "comentario": "Quebra muito facil",
+        "nota": 1,
+        "data": "2021-05-12T04:00:00Z",
+        "usuario": {
+          "_id": "999.888.777-33",
+          "nome": "Ana"
+        }
+      },
+      {
+        "_id": 2,
+        "comentario": "Melhor giz que ja usei na minha vida",
+        "nota": 8,
+        "data": "2020-10-01T04:10:00Z",
+        "usuario": {
+          "_id": "555.666.777-22",
+          "nome": "Jeff"
+        }
+      }
+    ]
+  }
+]
