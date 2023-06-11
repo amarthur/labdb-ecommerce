@@ -12,6 +12,7 @@ orders = db['orders']
 user_data = {
     "name": "John Doe",
     "email": "john.doe@example.com",
+    "_id": "user1234",
 }
 
 user_id_1 = users.insert_one(user_data).inserted_id
@@ -20,6 +21,7 @@ user_id_1 = users.insert_one(user_data).inserted_id
 user_data = {
     "name": "Jane Doe",
     "email": "jane.doe@example.com",
+    "_id": "user1235",
 }
 
 user_id_2 = users.insert_one(user_data).inserted_id
@@ -117,6 +119,7 @@ users.update_one(
 user_data = {
     "name": "Alice Smith",
     "email": "alice.smith@example.com",
+    "_id": "user1236",
 }
 
 user_id_3 = users.insert_one(user_data).inserted_id
@@ -179,6 +182,7 @@ users.update_one(
 user_data = {
     "name": "Bob Johnson",
     "email": "bob.johnson@example.com",
+    "_id": "user1237",
 }
 
 user_id_4 = users.insert_one(user_data).inserted_id
@@ -187,6 +191,7 @@ user_id_4 = users.insert_one(user_data).inserted_id
 user_data = {
     "name": "Carol Martinez",
     "email": "carol.martinez@example.com",
+    "_id": "user1238",
 }
 
 user_id_5 = users.insert_one(user_data).inserted_id
