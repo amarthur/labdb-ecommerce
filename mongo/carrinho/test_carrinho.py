@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 
 client = MongoClient('mongodb://localhost:27017/')
-db = client['my_database']
+db = client['ecommerce-documentos']
 
 users = db["usuarios"]
 carts = db["carrinhos"]
@@ -16,7 +16,7 @@ print(usuario)
 todos_usuarios = users.find()
 for usuario in todos_usuarios:
     print(usuario)
- 
+
 # Encontrar um carrinho por ID de usuário:
 id_usuario = "user1234"
 carrinho = carts.find_one({"id_usuario": id_usuario})
