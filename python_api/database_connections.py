@@ -1,9 +1,8 @@
 import psycopg2
-import redis
 from neo4j import GraphDatabase
 from pymongo import MongoClient
 
-NEO_4J_PORT = 7777 # NEED TO UPDATE
+NEO_4J_PORT = 7687
 MONGO_DB_PORT = 27017
 SQL_PORT = 5432
 

@@ -2,7 +2,7 @@ from neo4j import GraphDatabase
 
 
 def CreateQueries(relation_name, creation_query):
-    csv_path = f"file:///data/{relation_name}.csv"
+    csv_path = f"file:///ecommerce_data/{relation_name}.csv"
     csv_query = f"LOAD CSV WITH HEADERS FROM '{csv_path}' AS row"
     rel_query = f"CREATE (x)-[:{relation_name}]->(y)"
 
