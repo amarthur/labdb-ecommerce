@@ -16,7 +16,7 @@ def insert_data_into_collection(db, collection_name, drop_then_insert=True):
 
 
 def main():
-    DB = "ecommerce"
+    DB = "ecommerce-documentos"
     collections = ["avaliacoesEmpresas", "avaliacoesProdutos"]
 
     client = MongoClient()

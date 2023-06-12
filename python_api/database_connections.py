@@ -9,7 +9,7 @@ SQL_PORT = 5432
 neo4j_driver = GraphDatabase.driver(f"bolt://localhost:{NEO_4J_PORT}", auth=("neo4j", "password"))
 
 mongo_client = MongoClient(f'mongodb://localhost:{MONGO_DB_PORT}/')
-mongo_db = mongo_client['db_name']
+mongo_db = mongo_client['ecommerce-documentos']
 
 sql_conn = psycopg2.connect(
     host="localhost",
