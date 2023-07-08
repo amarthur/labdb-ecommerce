@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import daos
-from repos import SQLRepository, NeoRepository
+from repos import MongoRepository, NeoRepository, SQLRepository
 
 
 def ex_carriers(sql_repo):
@@ -282,24 +282,51 @@ def ex_order_has(sql_repo, neo_repo):
         user_dao.add_order(order, order_rel)
 
 
+def ex_rating(sql_repo, neo_repo, mongo_repo):
+    user_dao = daos.UserDAO(sql_repo, neo_repo, mongo_repo)
+    rating_data = [
+        {
+            "_id": 1,
+            "rating": 5,
+            "date": datetime(2023, 6, 30, 10, 0, 0),
+            "comment": "Fine",
+        },
+        {
+            "_id": 2,
+            "rating": 10,
+            "date": datetime(2022, 3, 12, 4, 30, 0),
+            "comment": "Very good",
+        },
+    ]
+    user_dao.add_company_rating('22244422244', '1919191919191', rating_data[0])
+    user_dao.add_company_rating('00011100011', '90123456789012', rating_data[1])
+    user_dao.remove_rating(1)
+
+
 def main():
     SQL_URL = "postgresql+psycopg2://postgres:postgres@localhost/ecommerce"
     NEO_URL = 'bolt://neo4j:password@localhost:7687'
+    MONGO_URL = 'mongodb://localhost:27017/ecommerce'
+
     sql_repo = SQLRepository(SQL_URL)
     neo_repo = NeoRepository(NEO_URL)
+    mongo_repo = MongoRepository(MONGO_URL)
     sql_repo.create_connection()
     neo_repo.create_connection()
+    mongo_repo.create_connection()
 
     ex_carriers(sql_repo)
     ex_sellers(sql_repo)
     ex_products(sql_repo, neo_repo)
     ex_users(sql_repo, neo_repo)
     ex_category(neo_repo)
+    ex_rating(sql_repo, neo_repo, mongo_repo)
 
     ex_sales(sql_repo, neo_repo)
     ex_promotion(sql_repo)
     ex_product_category(sql_repo, neo_repo)
     ex_order_has(sql_repo, neo_repo)
+
 
 if __name__ == "__main__":
     main()
