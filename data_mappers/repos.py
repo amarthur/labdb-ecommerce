@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
+from mongoengine import connect
 from neomodel import config, db
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -139,6 +140,46 @@ class NeoRepository(Repository):
 
     def cypher_query(self, query_params):
         return db.cypher_query(query_params)
+
+
+class MongoRepository(Repository):
+
+    # Connection
+    def __init__(self, URL):
+        self.URL = URL
+
+    def create_connection(self):
+        connect(host=self.URL)
+
+    # Transaction
+    def begin(self):
+        pass
+
+    def commit(self):
+        pass
+
+    def rollback(self):
+        pass
+
+    def close(self):
+        pass
+
+    # Data Access
+    def create(self, entities):
+        for entity in entities:
+            entity.save()
+
+    def read(self, entity, entity_id):
+        return entity.objects(_id=entity_id).first()
+
+    def update(self):
+        pass
+
+    def delete(self, entity):
+        entity.delete()
+
+    def save(self, entity):
+        entity.save()
 
 
 class Transactor(Repository):
