@@ -91,7 +91,7 @@ def ex_products(sql_repo, neo_repo):
     product_dao.delete(3)
 
 
-def ex_users(sql_repo, neo_repo):
+def ex_users(sql_repo, neo_repo, mongo_repo):
     users_data = [{
         'cpf': '00011100011',
         'name': 'John Doe',
@@ -114,7 +114,7 @@ def ex_users(sql_repo, neo_repo):
         'phone_number': ['989999999'],
         'addresses': ['789 Oak St'],
     }]
-    user_dao = daos.UserDAO(sql_repo, neo_repo)
+    user_dao = daos.UserDAO(sql_repo, neo_repo, mongo_repo)
     user_dao.create(users_data)
 
 
@@ -220,7 +220,7 @@ def ex_product_category(sql_repo, neo_repo):
     product_dao.add_category(1, 2)
 
 
-def ex_order_has(sql_repo, neo_repo):
+def ex_order_has(sql_repo, neo_repo, mongo_repo):
     orders_data = [
         {
             'order_id': 1,
@@ -277,7 +277,7 @@ def ex_order_has(sql_repo, neo_repo):
         },
     ]
 
-    user_dao = daos.UserDAO(sql_repo, neo_repo)
+    user_dao = daos.UserDAO(sql_repo, neo_repo, mongo_repo)
     for order, order_rel in zip(orders_data, order_has_data):
         user_dao.add_order(order, order_rel)
 
@@ -318,14 +318,14 @@ def main():
     ex_carriers(sql_repo)
     ex_sellers(sql_repo)
     ex_products(sql_repo, neo_repo)
-    ex_users(sql_repo, neo_repo)
+    ex_users(sql_repo, neo_repo, mongo_repo)
     ex_category(neo_repo)
     ex_rating(sql_repo, neo_repo, mongo_repo)
 
     ex_sales(sql_repo, neo_repo)
     ex_promotion(sql_repo)
     ex_product_category(sql_repo, neo_repo)
-    ex_order_has(sql_repo, neo_repo)
+    ex_order_has(sql_repo, neo_repo, mongo_repo)
 
 
 if __name__ == "__main__":
