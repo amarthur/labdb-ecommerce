@@ -1,9 +1,10 @@
 from typing import Dict, List
 
+import map_mongo
 import map_neo
 import map_sql
+from repos import MongoRepository, NeoRepository, SQLRepository, Transactor
 from sqlalchemy import update
-from repos import Transactor
 
 
 class SqlDAO:
@@ -55,6 +56,30 @@ class NeoDAO:
         entity_id_dict = {self.entity_id_key: entity_id}
         category_node = self.neo_repo.read(self.entity_class, entity_id_dict)
         self.neo_repo.delete(category_node)
+
+
+class MongoDAO:
+
+    def __init__(
+        self,
+        mongo_repo,
+        entity_class,
+    ):
+        self.mongo_repo = mongo_repo
+        self.entity_class = entity_class
+
+    @staticmethod
+    def ensure_list(entity_data: Dict | List[Dict]):
+        return entity_data if isinstance(entity_data, list) else [entity_data]
+
+    def create(self, entity_data: Dict | List[Dict]):
+        entity_data = self.ensure_list(entity_data)
+        mongo_entities = [self.entity_class(**entity) for entity in entity_data]
+        self.mongo_repo.create(mongo_entities)
+
+    def delete(self, entity_id):
+        entity = self.mongo_repo.read(self.entity_class, entity_id)
+        self.mongo_repo.delete(entity)
 
 
 class NeoRelator:
@@ -242,13 +267,15 @@ class PaymentDAO():
 
 class UserDAO():
 
-    def __init__(self, sql_repo, neo_repo):
+    def __init__(self, sql_repo, neo_repo, mongo_repo):
         self.sql_repo = sql_repo
         self.neo_repo = neo_repo
+        self.mongo_repo = mongo_repo
         self.transactor = Transactor([sql_repo, neo_repo])
 
         self.sql_dao = SqlDAO(sql_repo, map_sql.User)
         self.neo_dao = NeoDAO(neo_repo, map_neo.User, 'cpf')
+        self.mongo_dao = MongoDAO(mongo_repo, map_mongo.User)
         self.order_dao = OrderDAO(sql_repo, neo_repo)
 
         self.user_history_relator = \
@@ -314,6 +341,39 @@ class UserDAO():
     def remove_wish(self, user_id, product_id):
         with self.neo_repo.transaction():
             self.user_wishlist_relator.disconnect_entities(user_id, product_id)
+
+    def add_product_rating(self, user_id, product_id, rating_data):
+        self.add_rating(user_id, product_id, map_mongo.Product, rating_data)
+
+    def add_company_rating(self, user_id, company_id, rating_data):
+        self.add_rating(user_id, company_id, map_mongo.Company, rating_data)
+
+    def add_rating(self, user_id, entity_id, entity_class, rating_data):
+        user = self.mongo_repo.read(map_mongo.User, user_id)
+        rating = self.mongo_repo.read(map_mongo.Rating, rating_data['_id'])
+        entity = self.mongo_repo.read(entity_class, entity_id)
+
+        mongo_rating = MongoDAO(self.mongo_repo, map_mongo.Rating)
+        mongo_entity = MongoDAO(self.mongo_repo, entity_class)
+
+        if not user:
+            self.mongo_dao.create({"_id": user_id})
+            user = self.mongo_repo.read(map_mongo.User, user_id)
+
+        if not rating:
+            rating_data['user'] = user
+            mongo_rating.create(rating_data)
+            rating = self.mongo_repo.read(map_mongo.Rating, rating_data['_id'])
+
+        if not entity:
+            mongo_entity.create({"_id": entity_id, "ratings": [rating]})
+        else:
+            entity.ratings.append(rating)
+            self.mongo_repo.save(entity)
+
+    def remove_rating(self, rating_id):
+        mongo_rating = MongoDAO(self.mongo_repo, map_mongo.Rating)
+        mongo_rating.delete(rating_id)
 
 
 class OrderDAO():
