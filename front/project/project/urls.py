@@ -1,5 +1,5 @@
 """
-URL configuration for labbd project.
+URL configuration for project project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -16,7 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Other URL patterns
+    path('companies/', views.CompanyListView.as_view(), name='company_list'),
+    path('companies/<str:pk>/', views.CompanyDetailView.as_view(), name='company_detail'),
+    path('products/', views.ProductListView.as_view(), name='product_list'),
+    path('products/<int:pk>/', views.ProductDetailView.as_view(), name='product_detail'),
 ]
