@@ -1,69 +1,73 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import map_mongo
 import map_neo
 import map_sql
 from repos import MongoRepository, NeoRepository, SQLRepository, Transactor
-from sqlalchemy import update
+from sqlalchemy.inspection import inspect
 
 
 class SqlDAO:
 
     def __init__(
         self,
-        sql_repo,
-        entity_class,
+        sql_repo: SQLRepository,
+        entity_class: Any,
     ):
         self.sql_repo = sql_repo
         self.entity_class = entity_class
-
-    @staticmethod
-    def ensure_list(entity_data: Dict | List[Dict]):
-        return entity_data if isinstance(entity_data, list) else [entity_data]
+        self.pks = [key.name for key in inspect(entity_class).primary_key]
 
     def create(self, entity_data: Dict | List[Dict]):
-        entity_data = self.ensure_list(entity_data)
         sql_entities = [self.entity_class(**entity) for entity in entity_data]
         self.sql_repo.create(sql_entities)
 
-    def delete(self, entity_id):
+    def update(self, entity_id: Any, entity_data: Dict):
+        pk_ids = entity_id if isinstance(entity_id, list) else [entity_id]
+        self.sql_repo.update(self.pks, pk_ids, self.entity_class, entity_data)
+
+    def delete(self, entity_id: Any):
         entity = self.sql_repo.read(self.entity_class, entity_id)
         self.sql_repo.delete(entity)
+
+    def get(self, entity_id: Any):
+        return self.sql_repo.get(self.entity_class, entity_id)
 
 
 class NeoDAO:
 
-    def __init__(
-        self,
-        neo_repo,
-        entity_class,
-        entity_id_key,
-    ):
+    def __init__(self, neo_repo: NeoRepository, entity_class: Any):
         self.neo_repo = neo_repo
         self.entity_class = entity_class
-        self.entity_id_key = entity_id_key
 
-    @staticmethod
-    def ensure_list(entity_data: Dict | List[Dict]):
-        return entity_data if isinstance(entity_data, list) else [entity_data]
+    def get_neo_node(self, entity_id: Any):
+        neo_id_dict = {self.entity_class.get_pk(): entity_id}
+        return self.neo_repo.read(self.entity_class, neo_id_dict)
 
     def create(self, entity_data: Dict | List[Dict]):
-        entity_data = self.ensure_list(entity_data)
-        neo_entities = [self.entity_class(**entity) for entity in entity_data]
-        self.neo_repo.create(neo_entities)
+        neo_nodes = [self.entity_class(**entity) for entity in entity_data]
+        self.neo_repo.create(neo_nodes)
 
-    def delete(self, entity_id):
-        entity_id_dict = {self.entity_id_key: entity_id}
-        category_node = self.neo_repo.read(self.entity_class, entity_id_dict)
-        self.neo_repo.delete(category_node)
+    def update(self, entity_id: Any, entity_data: Dict):
+        neo_node = self.get_neo_node(entity_id)
+        for key, value in entity_data.items():
+            setattr(neo_node, key, value)
+        self.neo_repo.update(neo_node)
+
+    def delete(self, entity_id: Any):
+        neo_node = self.get_neo_node(entity_id)
+        self.neo_repo.delete(neo_node)
+
+    def get(self, entity_id: Any):
+        return self.neo_repo.get(self.get_neo_node(entity_id))
 
 
 class MongoDAO:
 
     def __init__(
         self,
-        mongo_repo,
-        entity_class,
+        mongo_repo: MongoRepository,
+        entity_class: Any,
     ):
         self.mongo_repo = mongo_repo
         self.entity_class = entity_class
@@ -76,8 +80,9 @@ class MongoDAO:
         entity_data = self.ensure_list(entity_data)
         mongo_entities = [self.entity_class(**entity) for entity in entity_data]
         self.mongo_repo.create(mongo_entities)
+        return mongo_entities[0] if len(mongo_entities) == 1 else mongo_entities
 
-    def delete(self, entity_id):
+    def delete(self, entity_id: Any):
         entity = self.mongo_repo.read(self.entity_class, entity_id)
         self.mongo_repo.delete(entity)
 
@@ -88,21 +93,17 @@ class NeoRelator:
         self,
         neo_repo,
         entity_class,
-        entity_id_key,
         target_class,
-        target_id_key,
         relationship_name,
     ):
         self.neo_repo = neo_repo
         self.entity_class = entity_class
-        self.entity_id_key = entity_id_key
         self.target_class = target_class
-        self.target_id_key = target_id_key
         self.relationship_name = relationship_name
 
-    def relate_entities(self, entity_id_value, target_id_value, connect):
-        entity_id_dict = {self.entity_id_key: entity_id_value}
-        target_id_dict = {self.target_id_key: target_id_value}
+    def relate_entities(self, entity_id_value: Any, target_id_value: Any, connect: bool):
+        entity_id_dict = {self.entity_class.get_pk(): entity_id_value}
+        target_id_dict = {self.target_class.get_pk(): target_id_value}
 
         entity = self.neo_repo.read(self.entity_class, entity_id_dict)
         target = self.neo_repo.read(self.target_class, target_id_dict)
@@ -113,52 +114,89 @@ class NeoRelator:
         else:
             relationship.disconnect(target)
 
-    def connect_entities(self, entity_id, target_id):
+    def connect_entities(self, entity_id: Any, target_id: Any):
         self.relate_entities(entity_id, target_id, connect=True)
 
-    def disconnect_entities(self, entity_id, target_id):
+    def disconnect_entities(self, entity_id: Any, target_id: Any):
         self.relate_entities(entity_id, target_id, connect=False)
 
 
-class CarrierDAO():
+class DAO:
 
-    def __init__(self, sql_repo):
-        self.sql_repo = sql_repo
-        self.sql_dao = SqlDAO(sql_repo, map_sql.Carrier)
+    def __init__(self, repo_class_tuples: Tuple[Any, Any] | List[Tuple[Any, Any]]):
+        repo_class_tuples = self.ensure_list(repo_class_tuples)
+        repos = [repo_class_tuple[0] for repo_class_tuple in repo_class_tuples]
 
-    def create(self, carrier_data):
-        with self.sql_repo.transaction():
-            self.sql_dao.create(carrier_data)
+        self.daos = [self.create_dao(repo_class_tuple) for repo_class_tuple in repo_class_tuples]
+        self.transactor = Transactor(repos)
 
-    def delete(self, carrier_id):
-        with self.sql_repo.transaction():
-            self.sql_dao.delete(carrier_id)
+    @staticmethod
+    def create_dao(repo_class_tuple: Tuple[Any, Any]):
+        repo, entity_class = repo_class_tuple
+        if isinstance(repo, SQLRepository):
+            return SqlDAO(repo, entity_class)
+        elif isinstance(repo, NeoRepository):
+            return NeoDAO(repo, entity_class)
+        elif isinstance(repo, MongoRepository):
+            return MongoDAO(repo, entity_class)
+        else:
+            raise ValueError("Unsupported repository type")
+
+    @staticmethod
+    def ensure_list(entity_data: Dict | List[Dict]):
+        return entity_data if isinstance(entity_data, list) else [entity_data]
+
+    def create(self, entity_data: Dict | List[Dict]):
+        entity_data = self.ensure_list(entity_data)
+        with self.transactor.transaction():
+            for dao in self.daos:
+                dao.create(entity_data)
+
+    def update(self, entity_id: Any, new_entity_data: Dict):
+        with self.transactor.transaction():
+            for dao in self.daos:
+                dao.update(entity_id, new_entity_data)
+
+    def delete(self, entity_id: Any):
+        with self.transactor.transaction():
+            for dao in self.daos:
+                dao.delete(entity_id)
+
+    def get(self, entity_id: Any):
+        with self.transactor.transaction():
+            for dao in self.daos:
+                return dao.get(entity_id)
 
 
-class SellerDAO():
+class CompanyDAO(DAO):
 
-    def __init__(self, sql_repo):
+    def __init__(self, sql_repo: SQLRepository):
+        super().__init__((sql_repo, map_sql.Company))
+
+
+class CarrierDAO(DAO):
+
+    def __init__(self, sql_repo: SQLRepository):
+        super().__init__((sql_repo, map_sql.Carrier))
+        self.company_dao = CompanyDAO(sql_repo)
+
+    def update(self, carrier_id: str, new_carrier_data: Dict):
+        self.company_dao.update(carrier_id, new_carrier_data)
+
+
+class SellerDAO(DAO):
+
+    def __init__(self, sql_repo: SQLRepository):
+        super().__init__((sql_repo, map_sql.Seller))
+
         self.sql_repo = sql_repo
         self.sql_dao = SqlDAO(sql_repo, map_sql.Seller)
+        self.company_dao = CompanyDAO(sql_repo)
 
-    def create(self, seller_data):
-        with self.sql_repo.transaction():
-            self.sql_dao.create(seller_data)
+    def update(self, seller_id: str, new_seller_data: Dict):
+        self.company_dao.update(seller_id, new_seller_data)
 
-    def delete(self, seller_id):
-        with self.sql_repo.transaction():
-            self.sql_dao.delete(seller_id)
-
-    def get_sales(self, seller_id):
-        with self.sql_repo.transaction():
-            seller = self.sql_repo.read(map_sql.Seller, seller_id)
-            products = []
-            if seller:
-                for product in seller.selling_products:
-                    products.append(product)
-                    self.sql_repo.expunge(product)
-            return products
-
+    # Sales
     def add_sale(self, sale_data: Dict):
         with self.sql_repo.transaction():
             sells = map_sql.Sells(**sale_data)
@@ -168,21 +206,20 @@ class SellerDAO():
             sells.is_sold = product
             seller.selling_prods.append(sells)
 
-    def remove_sale(self, seller_id, product_id):
+    def remove_sale(self, seller_id: str, product_id: int):
         with self.sql_repo.transaction():
             sells_tuple = self.sql_repo.read(map_sql.Sells, (seller_id, product_id))
             self.sql_repo.delete(sells_tuple)
 
-    def get_promotions(self, seller_id):
+    def get_sales(self, seller_id: str):
         with self.sql_repo.transaction():
             seller = self.sql_repo.read(map_sql.Seller, seller_id)
-            promotions = []
+            products = []
             if seller:
-                for product in seller.promoting_products:
-                    promotions.append(product)
-                    self.sql_repo.expunge(product)
-            return promotions
+                products = [self.sql_repo.entity_to_dict(product) for product in seller.selling_products]
+            return products
 
+    # Promotions
     def add_promotion(self, promotion_data: Dict):
         with self.sql_repo.transaction():
             promotes = map_sql.Promotes(**promotion_data)
@@ -192,124 +229,83 @@ class SellerDAO():
             promotes.is_promoted = product
             seller.promoting_prods.append(promotes)
 
-    def remove_promotion(self, seller_id, product_id):
+    def remove_promotion(self, seller_id: str, product_id: int):
         with self.sql_repo.transaction():
             sells_tuple = self.sql_repo.read(map_sql.Promotes, (seller_id, product_id))
             self.sql_repo.delete(sells_tuple)
 
+    def get_promotions(self, seller_id: str):
+        with self.sql_repo.transaction():
+            seller = self.sql_repo.read(map_sql.Seller, seller_id)
+            promotions = []
+            if seller:
+                promotions = [self.sql_repo.entity_to_dict(product) for product in seller.promoting_products]
+            return promotions
 
-class ProductDAO():
 
-    def __init__(self, sql_repo, neo_repo):
+class ProductDAO(DAO):
+
+    def __init__(self, sql_repo: SQLRepository, neo_repo: NeoRepository):
+        super().__init__([(sql_repo, map_sql.Product), (neo_repo, map_neo.Product)])
         self.sql_repo = sql_repo
         self.neo_repo = neo_repo
-        self.transactor = Transactor([sql_repo, neo_repo])
-
-        self.sql_dao = SqlDAO(sql_repo, map_sql.Product)
-        self.neo_dao = NeoDAO(neo_repo, map_neo.Product, 'product_id')
 
         self.product_category_relator = \
-            NeoRelator(neo_repo, map_neo.Product, 'product_id', map_neo.Category, 'category_id', 'belongs_to')
+            NeoRelator(neo_repo, map_neo.Product, map_neo.Category, 'belongs_to')
 
-    def create(self, product_data: Dict | List[Dict]):
-        product_data = self.sql_dao.ensure_list(product_data)
-
-        with self.transactor.transaction():
-            self.sql_dao.create(product_data)
-            self.neo_dao.create(product_data)
-
-    def delete(self, product_id: str):
-        with self.transactor.transaction():
-            self.sql_dao.delete(product_id)
-            self.neo_dao.delete(product_id)
-
-    def get_sellers(self, product_id):
+    # Sellers
+    def get_sellers(self, product_id: int):
         with self.sql_repo.transaction():
             product = self.sql_repo.read(map_sql.Product, product_id)
             sellers = []
             if product:
-                for seller in product.sold_by:
-                    sellers.append(seller.selling)
-                    self.sql_repo.expunge(seller.selling)
+                sellers = [self.sql_repo.entity_to_dict(seller) for seller in product.sold_by]
             return sellers
 
-    def get_categories(self, product_id):
+    # Categories
+    def add_category(self, product_id: int, category_id: int):
+        with self.neo_repo.transaction():
+            self.product_category_relator.connect_entities(product_id, category_id)
+
+    def remove_category(self, product_id: int, category_id: int):
+        with self.neo_repo.transaction():
+            self.product_category_relator.disconnect_entities(product_id, category_id)
+
+    def get_categories(self, product_id: int):
         query = (f"MATCH (p:Product)-[:BelongsTo]->(c:Category)<-[:Subcategory*0..]-(s:Category)"
                  f"WHERE p.product_id = {product_id} RETURN s")
         with self.neo_repo.transaction():
             results, _ = self.neo_repo.cypher_query(query)
-            nodes = [node for row in results for node in row]
+            nodes = [dict(node) for row in results for node in row]
             return nodes
 
-    def add_category(self, product_id, category_id):
-        with self.neo_repo.transaction():
-            self.product_category_relator.connect_entities(product_id, category_id)
 
-    def remove_category(self, product_id, category_id):
-        with self.neo_repo.transaction():
-            self.product_category_relator.disconnect_entities(product_id, category_id)
-
-
-class PaymentDAO():
+class PaymentDAO(DAO):
 
     def __init__(self, sql_repo):
-        self.sql_repo = sql_repo
-        self.sql_dao = SqlDAO(sql_repo, map_sql.PaymentMethod)
-
-    def create(self, payment_data):
-        with self.sql_repo.transaction():
-            self.sql_dao.create(payment_data)
-
-    def delete(self, payment_id):
-        with self.sql_repo.transaction():
-            self.sql_dao.delete(payment_id)
+        super().__init__((sql_repo, map_sql.PaymentMethod))
 
 
-class UserDAO():
+class UserDAO(DAO):
 
-    def __init__(self, sql_repo, neo_repo, mongo_repo):
+    def __init__(self, sql_repo: SQLRepository, neo_repo: NeoRepository, mongo_repo: MongoRepository):
+        super().__init__([(sql_repo, map_sql.User), (neo_repo, map_neo.User)])
+
         self.sql_repo = sql_repo
         self.neo_repo = neo_repo
         self.mongo_repo = mongo_repo
-        self.transactor = Transactor([sql_repo, neo_repo])
 
-        self.sql_dao = SqlDAO(sql_repo, map_sql.User)
-        self.neo_dao = NeoDAO(neo_repo, map_neo.User, 'cpf')
         self.mongo_dao = MongoDAO(mongo_repo, map_mongo.User)
         self.order_dao = OrderDAO(sql_repo, neo_repo)
 
         self.user_history_relator = \
-            NeoRelator(self.neo_repo, map_neo.User, 'cpf', map_neo.Product, 'product_id', 'history')
+            NeoRelator(self.neo_repo, map_neo.User, map_neo.Product, 'history')
         self.user_wishlist_relator = \
-            NeoRelator(self.neo_repo, map_neo.User, 'cpf', map_neo.Product, 'product_id', 'wishlist')
+            NeoRelator(self.neo_repo, map_neo.User, map_neo.Product, 'wishlist')
         self.user_order_relator = \
-            NeoRelator(self.neo_repo, map_neo.User, 'cpf', map_neo.Order, 'order_id', 'makes')
+            NeoRelator(self.neo_repo, map_neo.User, map_neo.Order, 'makes')
 
-    def create(self, user_data: Dict | List[Dict]):
-        user_data = self.sql_dao.ensure_list(user_data)
-
-        with self.transactor.transaction():
-            self.sql_dao.create(user_data)
-            self.neo_dao.create(user_data)
-
-    def update(self, new_user):
-        table_id = getattr(map_sql.User, self.pk_name)
-        user_id = getattr(new_user, self.pk_name)
-
-        if not self.read(user_id):
-            return
-
-        new_data = {column: getattr(new_user, column) for column in map_sql.User.__table__.columns.keys()}
-        stmt = (update(map_sql.User).where(table_id == user_id).values(**new_data))
-
-        with self.unit_of_work.transaction():
-            self.sql_repo.session.execute(stmt)
-
-    def delete(self, user_id):
-        with self.transactor.transaction():
-            self.sql_dao.delete(user_id)
-            self.neo_dao.delete(user_id)
-
+    # Order
     def add_order(self, order_data: Dict, order_rel_data: Dict):
         user_id = order_data.get('order_user_id')
         order_id = order_rel_data.get('order_id')
@@ -323,32 +319,35 @@ class UserDAO():
             self.order_dao.add_product(order_id, product_id)
             self.user_order_relator.connect_entities(user_id, order_id)
 
-    def remove_order(self, order_id):
+    def remove_order(self, order_id: int):
         self.order_dao.delete(order_id)
 
-    def add_search(self, user_id, product_id):
+    # Search
+    def add_search(self, user_id: str, product_id):
         with self.neo_repo.transaction():
             self.user_history_relator.connect_entities(user_id, product_id)
 
-    def remove_search(self, user_id, product_id):
+    def remove_search(self, user_id: str, product_id):
         with self.neo_repo.transaction():
             self.user_history_relator.disconnect_entities(user_id, product_id)
 
-    def add_wish(self, user_id, product_id):
+    # Wishlist
+    def add_wish(self, user_id: str, product_id):
         with self.neo_repo.transaction():
             self.user_wishlist_relator.connect_entities(user_id, product_id)
 
-    def remove_wish(self, user_id, product_id):
+    def remove_wish(self, user_id: str, product_id):
         with self.neo_repo.transaction():
             self.user_wishlist_relator.disconnect_entities(user_id, product_id)
 
-    def add_product_rating(self, user_id, product_id, rating_data):
+    # Rating
+    def add_product_rating(self, user_id: str, product_id: int, rating_data: Dict):
         self.add_rating(user_id, product_id, map_mongo.Product, rating_data)
 
-    def add_company_rating(self, user_id, company_id, rating_data):
+    def add_company_rating(self, user_id: str, company_id: str, rating_data: Dict):
         self.add_rating(user_id, company_id, map_mongo.Company, rating_data)
 
-    def add_rating(self, user_id, entity_id, entity_class, rating_data):
+    def add_rating(self, user_id: str, entity_id: Any, entity_class: Any, rating_data: Dict):
         user = self.mongo_repo.read(map_mongo.User, user_id)
         rating = self.mongo_repo.read(map_mongo.Rating, rating_data['_id'])
         entity = self.mongo_repo.read(entity_class, entity_id)
@@ -357,13 +356,13 @@ class UserDAO():
         mongo_entity = MongoDAO(self.mongo_repo, entity_class)
 
         if not user:
-            self.mongo_dao.create({"_id": user_id})
-            user = self.mongo_repo.read(map_mongo.User, user_id)
+            user = self.mongo_dao.create({"_id": user_id})
 
         if not rating:
             rating_data['user'] = user
-            mongo_rating.create(rating_data)
-            rating = self.mongo_repo.read(map_mongo.Rating, rating_data['_id'])
+            rating = mongo_rating.create(rating_data)
+        else:
+            return
 
         if not entity:
             mongo_entity.create({"_id": entity_id, "ratings": [rating]})
@@ -371,68 +370,63 @@ class UserDAO():
             entity.ratings.append(rating)
             self.mongo_repo.save(entity)
 
-    def remove_rating(self, rating_id):
+    def remove_rating(self, rating_id: int):
         mongo_rating = MongoDAO(self.mongo_repo, map_mongo.Rating)
         mongo_rating.delete(rating_id)
 
 
-class OrderDAO():
+class OrderDAO(DAO):
 
-    def __init__(self, sql_repo, neo_repo):
+    def __init__(self, sql_repo: SQLRepository, neo_repo: NeoRepository):
+        super().__init__([(sql_repo, map_sql.Order), (neo_repo, map_neo.Order)])
         self.sql_repo = sql_repo
         self.neo_repo = neo_repo
-        self.transactor = Transactor([sql_repo, neo_repo])
 
         self.sql_dao = SqlDAO(sql_repo, map_sql.Order)
-        self.neo_dao = NeoDAO(neo_repo, map_neo.Order, 'order_id')
+        self.neo_dao = NeoDAO(neo_repo, map_neo.Order)
 
         self.order_product_relator = \
-            NeoRelator(self.neo_repo, map_neo.Order, 'order_id', map_neo.Product, 'product_id', 'has_product')
+            NeoRelator(self.neo_repo, map_neo.Order, map_neo.Product, 'has_product')
 
+    # Order
     def create(self, order_data: Dict | List[Dict]):
         """
-        Creation is handled by the UserDAO,
-        so it's not encapsulated in a transaction.
+        Order creation is handled by the UserDAO
         """
-        order_data = self.sql_dao.ensure_list(order_data)
+        order_data = self.ensure_list(order_data)
         self.sql_dao.create(order_data)
         self.neo_dao.create(order_data)
 
-    def delete(self, order_id):
-        with self.transactor.transaction():
-            self.sql_dao.delete(order_id)
-            self.neo_dao.delete(order_id)
+    def get(self, order_id: str):
+        with self.sql_repo.transaction():
+            return self.sql_dao.get(order_id)
 
-    def add_product(self, order_id, product_id):
+    # Order Product
+    def add_product(self, order_id: int, product_id: int):
         self.order_product_relator.connect_entities(order_id, product_id)
 
-    def remove_product(self, order_id, product_id):
+    def remove_product(self, order_id: int, product_id: int):
         with self.neo_repo.transaction():
             self.order_product_relator.disconnect_entities(order_id, product_id)
 
 
-class CategoryDAO():
+class CategoryDAO(DAO):
 
-    def __init__(self, neo_repo):
-        self.pk = 'category_id'
+    def __init__(self, neo_repo: NeoRepository):
+        super().__init__((neo_repo, map_neo.Category))
         self.neo_repo = neo_repo
 
-        self.neo_dao = NeoDAO(self.neo_repo, map_neo.Category, 'category_id')
+        self.neo_dao = NeoDAO(self.neo_repo, map_neo.Category)
         self.category_subcategory_relator = \
-            NeoRelator(self.neo_repo, map_neo.Category, 'category_id', map_neo.Category, 'category_id', 'subcategory')
+            NeoRelator(self.neo_repo, map_neo.Category, map_neo.Category, 'subcategory')
 
-    def create(self, entity_data):
-        self.neo_dao.create(entity_data)
-
-    def delete(self, category_id):
-        self.neo_dao.delete(category_id)
-
-    def add_subcategory(self, category_id, subcategory_id):
-        with self.neo_repo.transaction():
+    # Subcategory
+    def add_subcategory(self, category_id: int, subcategory_id: int):
+        with self.transactor.transaction():
             self.category_subcategory_relator.connect_entities(category_id, subcategory_id)
 
-    def remove_subcategory(self, category_id, subcategory_id):
-        with self.neo_repo.transaction():
+    def remove_subcategory(self, category_id: int, subcategory_id: int):
+        with self.transactor.transaction():
             self.category_subcategory_relator.disconnect_entities(category_id, subcategory_id)
 
 
