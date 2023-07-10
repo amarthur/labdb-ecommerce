@@ -77,6 +77,12 @@ class Product(Base):
     sold_by: Mapped[List['Sells']] = relationship(back_populates='is_sold', cascade='all')
     promoted_by: Mapped[List['Promotes']] = relationship(back_populates='is_promoted', cascade='all')
 
+    selling_products: AssociationProxy[List['Seller']] = association_proxy(
+        "sold_by",
+        "selling",
+        creator=lambda seller_obj: Sells(selling=seller_obj),
+    )
+
 
 class Order(Base):
     __tablename__ = 'e_order'
@@ -186,7 +192,6 @@ class OrderHas(Base):
 def main():
     SQL_URL = "postgresql+psycopg2://postgres:postgres@localhost/ecommerce"
     engine = create_engine(SQL_URL)
-
     Base.metadata.create_all(bind=engine)
 
 
