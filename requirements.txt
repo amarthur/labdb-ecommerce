@@ -4,3 +4,5 @@ neo4j
 neomodel
 pymongo
 mongoengine
+Flask
+Flask-Cors
