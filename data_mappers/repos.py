@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
+from map_sql import Base
 from mongoengine import connect
 from neomodel import config, db
 from sqlalchemy import and_, create_engine, update
@@ -65,6 +66,7 @@ class SQLRepository(Repository):
 
     def create_connection(self):
         engine = create_engine(self.URL, future=True)
+        Base.metadata.create_all(bind=engine)
         Session = sessionmaker(engine, future=True)
         self.session = Session()
 
