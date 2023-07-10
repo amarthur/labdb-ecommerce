@@ -4,6 +4,12 @@ import daos
 from repos import MongoRepository, NeoRepository, SQLRepository
 
 
+def update_and_get(dao, entity_id, new_data):
+    dao.update(entity_id, new_data)
+    x = dao.get(entity_id)
+    print(x)
+
+
 def ex_carriers(sql_repo):
     carriers_data = [{
         "cnpj": "1919191919191",
@@ -27,6 +33,12 @@ def ex_carriers(sql_repo):
     carrier_dao = daos.CarrierDAO(sql_repo)
     carrier_dao.create(carriers_data)
     carrier_dao.delete('373737373737')
+
+
+def ex_carriers_update(sql_repo):
+    new_carrier_data = {"name": "Super Fast", "info": "Giga blaster fast carrier"}
+    carrier_dao = daos.CarrierDAO(sql_repo)
+    update_and_get(carrier_dao, '1919191919191', new_carrier_data)
 
 
 def ex_sellers(sql_repo):
@@ -60,6 +72,12 @@ def ex_sellers(sql_repo):
     seller_dao.delete('12345678901234')
 
 
+def ex_sellers_update(sql_repo):
+    new_seller_data = {"name": "Mercadao", "info": "Best seller of the west", "location": "The West"}
+    seller_dao = daos.SellerDAO(sql_repo)
+    update_and_get(seller_dao, '56789012345678', new_seller_data)
+
+
 def ex_products(sql_repo, neo_repo):
     products_data = [{
         "product_id": 1,
@@ -91,6 +109,12 @@ def ex_products(sql_repo, neo_repo):
     product_dao.delete(3)
 
 
+def ex_products_update(sql_repo, neo_repo):
+    new_product_data = {"name": "Ultra Wide Tv", "description": "Kilometers of Tv", "brand": "Samzong"}
+    product_dao = daos.ProductDAO(sql_repo, neo_repo)
+    update_and_get(product_dao, 1, new_product_data)
+
+
 def ex_users(sql_repo, neo_repo, mongo_repo):
     users_data = [{
         'cpf': '00011100011',
@@ -118,6 +142,12 @@ def ex_users(sql_repo, neo_repo, mongo_repo):
     user_dao.create(users_data)
 
 
+def ex_users_update(sql_repo, neo_repo, mongo_repo):
+    new_user_data = {"name": "Mirabelle", "email": "mirabelle@mail.com", "password": "strong_password"}
+    user_dao = daos.UserDAO(sql_repo, neo_repo, mongo_repo)
+    update_and_get(user_dao, '22244422244', new_user_data)
+
+
 def ex_category(neo_repo):
     categories_data = [
         {
@@ -141,8 +171,11 @@ def ex_category(neo_repo):
     category_dao.create(categories_data)
     category_dao.delete(4)
 
-    category_dao.add_subcategory(1, 2)
-    category_dao.add_subcategory(2, 3)
+
+def ex_category_update(neo_repo):
+    new_category_data = {"name": "Ultra Wide TV"}
+    category_dao = daos.CategoryDAO(neo_repo)
+    update_and_get(category_dao, 2, new_category_data)
 
 
 def ex_sales(sql_repo, neo_repo):
@@ -213,6 +246,12 @@ def ex_promotion(sql_repo):
     seller_dao.remove_promotion('90123456789012', 2)
     promotions = seller_dao.get_promotions('0112358132134')
     print(promotions)
+
+
+def ex_subcategory(neo_repo):
+    category_dao = daos.CategoryDAO(neo_repo)
+    category_dao.add_subcategory(1, 2)
+    category_dao.add_subcategory(2, 3)
 
 
 def ex_product_category(sql_repo, neo_repo):
@@ -303,8 +342,33 @@ def ex_rating(sql_repo, neo_repo, mongo_repo):
     user_dao.remove_rating(1)
 
 
+def ex_creation_delete(sql_repo, neo_repo, mongo_repo):
+    ex_carriers(sql_repo)
+    ex_sellers(sql_repo)
+    ex_products(sql_repo, neo_repo)
+    ex_users(sql_repo, neo_repo, mongo_repo)
+    ex_category(neo_repo)
+    ex_rating(sql_repo, neo_repo, mongo_repo)
+
+
+def ex_update_get(sql_repo, neo_repo, mongo_repo):
+    ex_carriers_update(sql_repo)
+    ex_sellers_update(sql_repo)
+    ex_products_update(sql_repo, neo_repo)
+    ex_users_update(sql_repo, neo_repo, mongo_repo)
+    ex_category_update(neo_repo)
+
+
+def ex_relationships(sql_repo, neo_repo, mongo_repo):
+    ex_sales(sql_repo, neo_repo)
+    ex_promotion(sql_repo)
+    ex_subcategory(neo_repo)
+    ex_product_category(sql_repo, neo_repo)
+    ex_order_has(sql_repo, neo_repo, mongo_repo)
+
+
 def main():
-    SQL_URL = "postgresql+psycopg2://postgres:postgres@localhost/ecommerce"
+    SQL_URL = 'postgresql+psycopg2://postgres:postgres@localhost/ecommerce'
     NEO_URL = 'bolt://neo4j:password@localhost:7687'
     MONGO_URL = 'mongodb://localhost:27017/ecommerce'
 
@@ -315,17 +379,10 @@ def main():
     neo_repo.create_connection()
     mongo_repo.create_connection()
 
-    ex_carriers(sql_repo)
-    ex_sellers(sql_repo)
-    ex_products(sql_repo, neo_repo)
-    ex_users(sql_repo, neo_repo, mongo_repo)
-    ex_category(neo_repo)
-    ex_rating(sql_repo, neo_repo, mongo_repo)
-
-    ex_sales(sql_repo, neo_repo)
-    ex_promotion(sql_repo)
-    ex_product_category(sql_repo, neo_repo)
-    ex_order_has(sql_repo, neo_repo, mongo_repo)
+    snm = (sql_repo, neo_repo, mongo_repo)
+    ex_creation_delete(*snm)
+    ex_update_get(*snm)
+    ex_relationships(*snm)
 
 
 if __name__ == "__main__":
