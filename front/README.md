@@ -1,4 +1,4 @@
-# unievent
+# E-commerce
 
 ## Project setup
 ```

@@ -30,7 +30,10 @@ export default {
     sortedEvents() {
       return this.events.slice().sort((a, b) => a.date - b.date);
     }
-  }
+  },
+  mounted() {
+    document.title = `ecommerce`;
+}
 }
 </script>
 
