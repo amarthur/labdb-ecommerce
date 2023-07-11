@@ -11,3 +11,4 @@ Flask-Cors
 Npm
 VueJS
 axios
+vue-router

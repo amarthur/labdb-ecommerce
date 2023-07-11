@@ -1,0 +1,46 @@
+{
+    "User": [
+      {
+        "_id": "user1"
+      },
+      {
+        "_id": "user2"
+      }
+    ],
+    "Rating": [
+      {
+        "_id": 1,
+        "user": "user1",
+        "rating": 4,
+        "date": "2023-07-10T10:00:00",
+        "comment": "Rating comment 1"
+      },
+      {
+        "_id": 2,
+        "user": "user2",
+        "rating": 5,
+        "date": "2023-07-11T10:00:00",
+        "comment": "Rating comment 2"
+      }
+    ],
+    "Product": [
+      {
+        "_id": 1,
+        "ratings": [1, 2]
+      },
+      {
+        "_id": 2,
+        "ratings": []
+      }
+    ],
+    "Company": [
+      {
+        "_id": "company1",
+        "ratings": [1, 2]
+      },
+      {
+        "_id": "company2",
+        "ratings": []
+      }
+    ]
+  }

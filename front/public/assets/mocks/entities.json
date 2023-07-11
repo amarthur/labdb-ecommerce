@@ -1,0 +1,137 @@
+{
+    "Company": {
+        "description": "Represents a company in the system",
+        "type": "entity",
+        "fields": {
+            "cnpj": "The unique national identifier for the company",
+            "name": "The name of the company",
+            "info": "Additional information about the company",
+            "contact": "A list of contact numbers for the company",
+            "location": "The physical address of the company",
+            "company_type": "The type of the company"
+        }
+    },
+    "Carrier": {
+        "description": "Represents a carrier in the system, a specialized type of company",
+        "type": "entity",
+        "fields": {
+            "cnpj": "The unique national identifier for the carrier"
+        }
+    },
+    "Seller": {
+        "description": "Represents a seller in the system, a specialized type of company",
+        "type": "entity",
+        "fields": {
+            "cnpj": "The unique national identifier for the seller",
+            "selling_prods": "A list of product IDs that this seller sells",
+            "promoting_prods": "A list of product IDs that this seller promotes"
+        }
+    },
+    "Product": {
+        "description": "Represents a product in the system",
+        "type": "entity",
+        "fields": {
+            "product_id": "The unique identifier for the product",
+            "name": "The name of the product",
+            "brand": "The brand of the product",
+            "description": "A description of the product",
+            "manufacturer": "The manufacturer of the product",
+            "technical_details": "Technical details about the product",
+            "image_urls": "A list of URLs to images of the product",
+            "sold_by": "A list of seller IDs who sell this product",
+            "promoted_by": "A list of seller IDs who promote this product"
+        }
+    },
+    "Order": {
+        "description": "Represents an order in the system",
+        "type": "entity",
+        "fields": {
+            "order_id": "The unique identifier for the order",
+            "order_date": "The date and time when the order was placed",
+            "order_status": "The status of the order",
+            "observations": "Any observations associated with the order",
+            "order_user_id": "The unique identifier of the user who placed the order",
+            "paid_by": "A list of payment methods used to pay for the order",
+            "cascade_order": "A list of orders that are associated with this order"
+        }
+    },
+    "PaymentMethod": {
+        "description": "Represents a payment method in the system",
+        "type": "entity",
+        "fields": {
+            "payment_id": "The unique identifier for the payment method",
+            "info": "Information about the payment method",
+            "had_by": "A list of user IDs who have this payment method",
+            "pays_order": "A list of order IDs that this payment method was used to pay for"
+        }
+    },
+    "User": {
+        "description": "Represents a user in the system",
+        "type": "entity",
+        "fields": {
+            "cpf": "The unique national identifier for the user",
+            "name": "The name of the user",
+            "email": "The email address of the user",
+            "password": "The encrypted password of the user",
+            "addresses": "A list of addresses associated with the user",
+            "phone_number": "A list of phone numbers associated with the user",
+            "makes_order": "A list of order IDs that this user made",
+            "has_payment": "A list of payment method IDs that this user has"
+        }
+    },
+    "Sells": {
+        "description": "Represents a sell relation between a seller and a product",
+        "type": "relationship",
+        "fields": {
+            "cnpj": "The unique national identifier for the seller",
+            "product_id": "The unique identifier for the product",
+            "price": "The price of the product",
+            "stock": "The number of units in stock",
+            "guarantee": "Information about the product's guarantee",
+            "finish_date": "The end date of the selling period"
+        }
+    },
+    "Promotes": {
+        "description": "Represents a promotion relation between a seller and a product",
+        "type": "relationship",
+        "fields": {
+            "cnpj": "The unique national identifier for the seller",
+            "product_id": "The unique identifier for the product",
+            "start_date": "The start date of the promotion",
+            "finish_date": "The end date of the promotion",
+            "promotion_type": "The type of promotion"
+        }
+    },
+    "HasPaymentMethod": {
+        "description": "Represents a relation between a user and a payment method",
+        "type": "relationship",
+        "fields": {
+            "user_id": "The unique identifier for the user",
+            "payment_method_id": "The unique identifier for the payment method",
+            "payment_type": "The type of the payment method"
+        }
+    },
+    "Pays": {
+        "description": "Represents a payment relation between a payment method and an order",
+        "type": "relationship",
+        "fields": {
+            "payment_method_id": "The unique identifier for the payment method",
+            "order_id": "The unique identifier for the order",
+            "installment": "Information about the installment payments"
+        }
+    },
+    "OrderHas": {
+        "description": "Represents an order item in the system",
+        "type": "relationship",
+        "fields": {
+            "order_id": "The unique identifier for the order",
+            "carrier_id": "The unique national identifier for the carrier",
+            "seller_id": "The unique national identifier for the seller",
+            "product_id": "The unique identifier for the product",
+            "tracking": "The tracking number for the order item",
+            "quantity": "The number of units of the product in the order",
+            "shipping_fee": "The shipping fee for the order item",
+            "delivery_date": "The expected delivery date for the order item"
+        }
+    }
+}

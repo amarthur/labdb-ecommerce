@@ -1,0 +1,14 @@
+{
+  "has_pay_method": [
+      {
+        "user_id": "12345678901",
+        "payment_method_id": 1,
+        "payment_type": "Credit Card"
+      },
+      {
+        "user_id": "09876543210",
+        "payment_method_id": 2,
+        "payment_type": "PayPal"
+      }
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    "company": [
+      {
+        "cnpj": "12345678901234",
+        "name": "ABC Company",
+        "info": "Company information",
+        "contact": ["contact1", "contact2"],
+        "location": "Company location",
+        "company_type": "company"
+      },
+      {
+        "cnpj": "98765432109876",
+        "name": "XYZ Company",
+        "info": "Company information",
+        "contact": ["contact1", "contact2"],
+        "location": "Company location",
+        "company_type": "carrier"
+      },
+      {
+        "cnpj": "56789012345678",
+        "name": "Seller Company",
+        "info": "Company information",
+        "contact": ["contact1", "contact2"],
+        "location": "Company location",
+        "company_type": "seller"
+      }
+    ]
+}

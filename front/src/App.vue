@@ -1,77 +1,32 @@
 <template>
   <div id="app">
     <div class="navbar">
-      <img src="@/assets/logo.png" alt="Logo" class="logo"/>
-      <input type="text" placeholder="Search..." :class="['search', isLoggedIn ? 'search-logged-in' : 'search-logged-out']"/>
-      <div class="buttons" v-if="!isLoggedIn">
-        <button class="btn login" @click="showLoginModel">Log In</button>
-        <button class="btn join" @click="showJoinModel">Join</button>
-      </div>
-      <div class="user-section" v-else>
-        <button class="btn create-event" @click="showCreateEventModal">Create Event</button>
-        <div class="dropdown" @click="toggleDropdown">
-          <div class="dropdown-content" v-show="isDropdownShown">
-            <button class="btn logout" @click="handleLogout">Log Out</button>
-          </div>
-        </div>
-      </div>
-      <LoginModel ref="LoginModel" @login-success="handleLoginSuccess" />
-      <JoinModel ref="JoinModel" />
-      <CreateEventModal ref="CreateEventModal" />
+      <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <input type="text" placeholder="Search..." :class="['search', true ? 'search-logged-in' : 'search-logged-out']" />
     </div>
 
     <h1 class="title">Event Feed</h1>
     <div class="event-feed">
-      <EntitiesViewer/>
+      <router-view />
     </div>
   </div>
 </template>
 
 <script>
 
-import LoginModel from './components/LoginModel.vue';
-import CreateEventModal from './components/CreateEventModal.vue';
-import JoinModel from './components/JoinModel.vue';
-import EntitiesViewer from './components/EntitiesViewer.vue';
 
 export default {
   name: 'App',
   components: {
-    LoginModel,
-    JoinModel,
-    CreateEventModal,
-    EntitiesViewer,
+
   },
   data() {
     return {
-      events: [],
-      isLoggedIn: false,
-      isDropdownShown: false,
     }
   },
   methods: {
-    handleJoin() {
-      // handle join logic here
-      console.log('Join button clicked');
-    },
-    showLoginModel() {
-      this.$refs.LoginModel.showLoginModel();
-    },
-    showJoinModel() {
-      this.$refs.JoinModel.showJoinModal();
-    },
-    handleLoginSuccess() {
-      this.isLoggedIn = true;
-    },
-    showCreateEventModal() {
-      this.$refs.CreateEventModal.showCreateEventModal();
-    },
     toggleDropdown() {
       this.isDropdownShown = !this.isDropdownShown;
-    },
-    handleLogout() {
-      // logout logic
-      this.isLoggedIn = false;
     },
   },
   computed: {

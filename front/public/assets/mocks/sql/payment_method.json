@@ -1,0 +1,12 @@
+{
+    "payment_method": [
+      {
+        "payment_id": 1,
+        "info": "Payment method 1"
+      },
+      {
+        "payment_id": 2,
+        "info": "Payment method 2"
+      }
+    ]
+}

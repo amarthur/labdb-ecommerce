@@ -2,7 +2,7 @@
   <div class="entities">
     <div v-for="(entity, entityName) in entities" :key="entityName" class="entity" @click="toggleDetails(entityName)">
       <div class="entity-header">
-        <img :src="entity.type === 'entity' ? require('@/assets/logos/entity.png') : require('@/assets/logos/relationship.png')" class="entity-logo" alt="Entity Logo"/>
+        <img :src="getImage(entity.type)" class="entity-logo" alt="Entity Logo"/>
         <div>
           <h2 class="entity-name">{{ entityName }}</h2>
           <p v-if="entityDetailsShown[entityName]" class="entity-description">{{ entity.description }}</p>
@@ -14,7 +14,10 @@
           <p class="field-description">{{ description }}</p>
         </li>
         <li class="view-all-container">
-          <button class="view-all-button">View All</button>
+          <!-- Router Link Component for View All -->
+          <router-link :to="`/${entityName}/all`">
+            <button class="view-all-button">View All</button>
+          </router-link>
         </li>
       </ul>
     </div>
@@ -39,6 +42,13 @@ export default {
       } else {
         this.entityDetailsShown[entityName] = true;
       }
+    },
+    viewAllDetails(entityName) {
+      this.$router.push({ name: 'ViewAll', params: { entityName: entityName } });
+    },
+
+    getImage(entityType) {
+      return entityType === 'entity' ? require('@/assets/logos/entity.png') : require('@/assets/logos/relationship.png');
     }
   }
 }
@@ -69,12 +79,18 @@ export default {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 5px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.entity-header {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .description {
   font-size: 12px;
   color: #888;
   margin-bottom: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .fields {
@@ -86,12 +102,14 @@ export default {
 .field-name {
   font-weight: bold;
   font-size: 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .field-description {
   margin-left: 10px;
   font-size: 12px;
   color: #666;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .entities {
@@ -121,6 +139,7 @@ export default {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .view-all-button:hover {

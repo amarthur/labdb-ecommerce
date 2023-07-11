@@ -1,0 +1,20 @@
+{
+    "user": [
+      {
+        "cpf": "12345678901",
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "password": "password123",
+        "addresses": ["Address 1", "Address 2"],
+        "phone_number": ["1234567890"]
+      },
+      {
+        "cpf": "09876543210",
+        "name": "Jane Smith",
+        "email": "janesmith@example.com",
+        "password": "password456",
+        "addresses": ["Address 1", "Address 2"],
+        "phone_number": ["0987654321"]
+      }
+    ]
+}
