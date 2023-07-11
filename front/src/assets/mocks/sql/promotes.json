@@ -1,0 +1,11 @@
+{
+    "promotes": [
+      {
+        "cnpj": "56789012345678",
+        "product_id": 1,
+        "start_date": "2023-07-10T10:00:00",
+        "finish_date": "2023-07-11T10:00:00",
+        "promotion_type": "Discount"
+      }
+    ]
+}

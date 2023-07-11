@@ -1,0 +1,5 @@
+{
+    "sql_url": "postgresql+psycopg2://postgres:postgres@localhost/ecommerce",
+    "neo_url": "bolt://neo4j:password@localhost:7687",
+    "mongo_url": "mongodb://localhost:27017/ecommerce"
+}

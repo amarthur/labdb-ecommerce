@@ -1,0 +1,14 @@
+{
+    "pays": [
+      {
+        "payment_method_id": 1,
+        "order_id": 1,
+        "installment": null
+      },
+      {
+        "payment_method_id": 2,
+        "order_id": 2,
+        "installment": null
+      }
+    ]
+}

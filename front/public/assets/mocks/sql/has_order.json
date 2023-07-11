@@ -1,0 +1,14 @@
+{
+    "has_order": [
+      {
+        "order_id": 1,
+        "carrier_id": "98765432109876",
+        "seller_id": "56789012345678",
+        "product_id": 1,
+        "tracking": "Tracking code",
+        "quantity": 2,
+        "shipping_fee": 10.5,
+        "delivery_date": "2023-07-12T10:00:00"
+      }
+    ]
+  }

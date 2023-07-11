@@ -1,0 +1,18 @@
+{
+    "order": [
+      {
+        "order_id": 1,
+        "order_date": "2023-07-10T10:00:00",
+        "order_status": "Pending",
+        "observations": null,
+        "order_user_id": "1234567890"
+      },
+      {
+        "order_id": 2,
+        "order_date": "2023-07-10T11:00:00",
+        "order_status": "Completed",
+        "observations": "Order completed",
+        "order_user_id": "0987654321"
+      }
+    ]
+}

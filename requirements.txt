@@ -1,4 +1,14 @@
-neo4j
-pymongo
+SQLAlchemy
 psycopg2-binary
+neo4j
+neomodel
+pymongo
+mongoengine
 Flask
+Flask-Cors
+
+# front
+Npm
+VueJS
+axios
+vue-router
