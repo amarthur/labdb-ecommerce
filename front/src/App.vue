@@ -1,7 +1,9 @@
 <template>
   <div id="app">
     <div class="navbar">
-      <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <router-link to="/">
+        <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      </router-link>
       <input type="text" placeholder="Search..." :class="['search', true ? 'search-logged-in' : 'search-logged-out']" />
     </div>
 
@@ -13,16 +15,11 @@
 </template>
 
 <script>
-
-
 export default {
   name: 'App',
-  components: {
-
-  },
+  components: {},
   data() {
-    return {
-    }
+    return {}
   },
   methods: {
     toggleDropdown() {
@@ -30,10 +27,10 @@ export default {
     },
   },
   computed: {
-  sortedEvents() {
-    return this.events.slice().sort((a, b) => a.date - b.date);
+    sortedEvents() {
+      return this.events.slice().sort((a, b) => a.date - b.date);
+    }
   }
-}
 }
 </script>
 
