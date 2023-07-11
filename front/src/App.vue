@@ -10,7 +10,6 @@
       <div class="user-section" v-else>
         <button class="btn create-event" @click="showCreateEventModal">Create Event</button>
         <div class="dropdown" @click="toggleDropdown">
-          <img class="user-profile" src="@/assets/owners/uspcodelab.png" alt="User Profile">
           <div class="dropdown-content" v-show="isDropdownShown">
             <button class="btn logout" @click="handleLogout">Log Out</button>
           </div>
@@ -22,30 +21,26 @@
     </div>
 
     <h1 class="title">Event Feed</h1>
-    <div class="entity-feed">
-      <EntitiesList :entities="entities" v-if="entities" />
-    </div>
     <div class="event-feed">
-      <EventPost v-for="event in sortedEvents" :key="event.id" :event="event" />
+      <EntitiesViewer/>
     </div>
   </div>
 </template>
 
 <script>
-import EventPost from './components/EventPost.vue';
+
 import LoginModel from './components/LoginModel.vue';
 import CreateEventModal from './components/CreateEventModal.vue';
 import JoinModel from './components/JoinModel.vue';
-import EntitiesList from './components/EntitiesList.vue';
+import EntitiesViewer from './components/EntitiesViewer.vue';
 
 export default {
   name: 'App',
   components: {
-    EventPost,
     LoginModel,
     JoinModel,
     CreateEventModal,
-    EntitiesList,
+    EntitiesViewer,
   },
   data() {
     return {
@@ -53,9 +48,6 @@ export default {
       isLoggedIn: false,
       isDropdownShown: false,
     }
-  },
-  created() {
-    this.fetchEvents()
   },
   methods: {
     handleJoin() {
@@ -81,21 +73,6 @@ export default {
       // logout logic
       this.isLoggedIn = false;
     },
-    fetchEvents() {
-      fetch('http://localhost:5000/api/events')
-      .then(response => response.json())
-      .then(data => {
-        this.events = data.map(event => ({
-          ...event,
-          date: new Date(Date.parse(event.date || event.datetime)),
-          imageURL: require('@/assets/events/' + event.imageURL),
-          ownerImageURL: require('@/assets/owners/' + event.ownerImageURL)
-        }));
-      })
-      .catch(error => {
-        console.error('Error fetching events:', error);
-      });
-    }
   },
   computed: {
   sortedEvents() {

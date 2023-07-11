@@ -1,6 +1,7 @@
 {
     "Company": {
         "description": "Represents a company in the system",
+        "type": "entity",
         "fields": {
             "cnpj": "The unique national identifier for the company",
             "name": "The name of the company",
@@ -12,12 +13,14 @@
     },
     "Carrier": {
         "description": "Represents a carrier in the system, a specialized type of company",
+        "type": "entity",
         "fields": {
             "cnpj": "The unique national identifier for the carrier"
         }
     },
     "Seller": {
         "description": "Represents a seller in the system, a specialized type of company",
+        "type": "entity",
         "fields": {
             "cnpj": "The unique national identifier for the seller",
             "selling_prods": "A list of product IDs that this seller sells",
@@ -26,6 +29,7 @@
     },
     "Product": {
         "description": "Represents a product in the system",
+        "type": "entity",
         "fields": {
             "product_id": "The unique identifier for the product",
             "name": "The name of the product",
@@ -40,6 +44,7 @@
     },
     "Order": {
         "description": "Represents an order in the system",
+        "type": "entity",
         "fields": {
             "order_id": "The unique identifier for the order",
             "order_date": "The date and time when the order was placed",
@@ -52,6 +57,7 @@
     },
     "PaymentMethod": {
         "description": "Represents a payment method in the system",
+        "type": "entity",
         "fields": {
             "payment_id": "The unique identifier for the payment method",
             "info": "Information about the payment method",
@@ -61,6 +67,7 @@
     },
     "User": {
         "description": "Represents a user in the system",
+        "type": "entity",
         "fields": {
             "cpf": "The unique national identifier for the user",
             "name": "The name of the user",
@@ -74,6 +81,7 @@
     },
     "Sells": {
         "description": "Represents a sell relation between a seller and a product",
+        "type": "relationship",
         "fields": {
             "cnpj": "The unique national identifier for the seller",
             "product_id": "The unique identifier for the product",
@@ -85,6 +93,7 @@
     },
     "Promotes": {
         "description": "Represents a promotion relation between a seller and a product",
+        "type": "relationship",
         "fields": {
             "cnpj": "The unique national identifier for the seller",
             "product_id": "The unique identifier for the product",
@@ -95,6 +104,7 @@
     },
     "HasPaymentMethod": {
         "description": "Represents a relation between a user and a payment method",
+        "type": "relationship",
         "fields": {
             "user_id": "The unique identifier for the user",
             "payment_method_id": "The unique identifier for the payment method",
@@ -103,6 +113,7 @@
     },
     "Pays": {
         "description": "Represents a payment relation between a payment method and an order",
+        "type": "relationship",
         "fields": {
             "payment_method_id": "The unique identifier for the payment method",
             "order_id": "The unique identifier for the order",
@@ -111,6 +122,7 @@
     },
     "OrderHas": {
         "description": "Represents an order item in the system",
+        "type": "relationship",
         "fields": {
             "order_id": "The unique identifier for the order",
             "carrier_id": "The unique national identifier for the carrier",
