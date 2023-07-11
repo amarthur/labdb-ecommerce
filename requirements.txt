@@ -6,3 +6,8 @@ pymongo
 mongoengine
 Flask
 Flask-Cors
+
+# front
+Npm
+VueJS
+axios
