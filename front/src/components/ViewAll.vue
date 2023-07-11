@@ -42,13 +42,32 @@
     },
     methods: {
         async createItem() {
-            // PUT, POST or PATCH request to your API
-            // You can reuse or adapt the updateItem() method code for this
+            // Construct data to send
+            let dataToSend = {
+                entity: this.entityName,  // Use the entityName from data()
+                data: this.newItem  // Use the newItem from data()
+            };
 
-            // Close the modal after successful creation
-            this.showCreateModal = false;
-            // Clear the newItem object
-            this.newItem = {};
+            try {
+                const response = await fetch('http://localhost:5000/api/create', { // replace with your Flask API's URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+                } else {
+                // Here, you might want to refresh the item list, close the modal or give some feedback to the user
+                console.log('Item created successfully');
+                this.fetchItems();
+                this.closeModal();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         },
         async updateItem(item) {
             try {
