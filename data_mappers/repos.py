@@ -63,6 +63,7 @@ class SQLRepository(Repository):
     def __init__(self, URL):
         self.URL = URL
         self.session = None
+        self.create_connection()
 
     def create_connection(self):
         engine = create_engine(self.URL, future=True)
@@ -104,6 +105,9 @@ class SQLRepository(Repository):
         entity = self.read(entity_class, entity_id)
         return self.entity_to_dict(entity)
 
+    def get_all(self, entity_class):
+        return [self.entity_to_dict(entity) for entity in self.session.query(entity_class).all()]
+
     def execute(self, stmt):
         self.session.execute(stmt)
 
@@ -123,6 +127,7 @@ class NeoRepository(Repository):
     # Connection
     def __init__(self, URL):
         self.URL = URL
+        self.create_connection()
 
     def create_connection(self):
         config.DATABASE_URL = self.URL
@@ -146,8 +151,8 @@ class NeoRepository(Repository):
             node_class = type(entity)
             node_class.save(entity)
 
-    def read(self, entity, entity_id):
-        return entity.nodes.get_or_none(**entity_id)
+    def read(self, entity_class, entity_id):
+        return entity_class.nodes.get_or_none(**entity_id)
 
     def update(self, entity):
         entity.save()
@@ -163,6 +168,9 @@ class NeoRepository(Repository):
     def get(self, entity):
         return self.entity_to_dict(entity)
 
+    def get_all(self, entity_class):
+        return [self.entity_to_dict(entity) for entity in entity_class.nodes.all()]
+
     @staticmethod
     def entity_to_dict(entity):
         entity_dict = {key: value for key, value in entity.__properties__.items()}
@@ -174,6 +182,7 @@ class MongoRepository(Repository):
     # Connection
     def __init__(self, URL):
         self.URL = URL
+        self.create_connection()
 
     def create_connection(self):
         connect(host=self.URL)
