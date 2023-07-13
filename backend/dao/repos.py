@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-from map_sql import Base
+from data_mappers.map_sql import Base
 from mongoengine import connect
 from neomodel import config, db
 from sqlalchemy import and_, create_engine, update

@@ -1,10 +1,14 @@
+import os
+import sys
 from typing import Any, Dict, List, Tuple
 
-import map_mongo
-import map_neo
-import map_sql
-from repos import MongoRepository, NeoRepository, SQLRepository, Transactor
+# Get relative imports to work when the package is not installed on the PYTHONPATH.
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from data_mappers import map_mongo, map_neo, map_sql
 from sqlalchemy.inspection import inspect
+
+from .repos import MongoRepository, NeoRepository, SQLRepository, Transactor
 
 
 class SqlDAO:

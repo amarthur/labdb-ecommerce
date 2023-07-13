@@ -1,7 +1,10 @@
 import json
+import os
+import sys
 
-import daos
-import repos
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from dao import daos, repos
 from flask import Flask, current_app, jsonify, request
 from flask_cors import CORS
 
@@ -11,7 +14,9 @@ CORS(app)
 
 def get_repo(repo_name, repo_url, RepoClass):
     if repo_name not in current_app.config:
-        with open('./urls.json', 'r') as file:
+
+        file_path = os.path.join(os.path.dirname(__file__), 'urls.json')
+        with open(file_path, 'r') as file:
             config = json.load(file)
 
         repo_url = config[repo_url]
