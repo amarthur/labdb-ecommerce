@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
 from data_mappers.map_sql import Base
+from pymongo import MongoClient
 from mongoengine import connect
 from neomodel import config, db
 from sqlalchemy import and_, create_engine, update
@@ -62,14 +63,18 @@ class SQLRepository(Repository):
     # Connection
     def __init__(self, URL):
         self.URL = URL
+        self.engine = None
         self.session = None
         self.create_connection()
 
     def create_connection(self):
-        engine = create_engine(self.URL, future=True)
-        Base.metadata.create_all(bind=engine)
-        Session = sessionmaker(engine, future=True)
+        self.engine = create_engine(self.URL, future=True)
+        Base.metadata.create_all(bind=self.engine)
+        Session = sessionmaker(self.engine, future=True)
         self.session = Session()
+
+    def drop_all(self):
+        Base.metadata.drop_all(bind=self.engine)
 
     # Transaction
     def begin(self):
@@ -132,6 +137,9 @@ class NeoRepository(Repository):
     def create_connection(self):
         config.DATABASE_URL = self.URL
 
+    def drop_all(self):
+        self.cypher_query("MATCH(n) DETACH DELETE(n)")
+
     # Transaction
     def begin(self):
         db.begin()
@@ -182,10 +190,14 @@ class MongoRepository(Repository):
     # Connection
     def __init__(self, URL):
         self.URL = URL
-        self.create_connection()
+        self.db = self.create_connection()
 
     def create_connection(self):
-        connect(host=self.URL)
+        return connect(host=self.URL)
+
+    def drop_all(self):
+        db_name = MongoClient(self.URL).get_default_database().name
+        self.db.drop_database(db_name)
 
     # Transaction
     def begin(self):
