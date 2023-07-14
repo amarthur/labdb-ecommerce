@@ -3,7 +3,7 @@ PIP := pip3
 NPM := npm
 
 BACK := backend
-FRONT := front
+FRONT := frontend
 
 VENV := $(BACK)/venv
 VENV_ACTIVATE = source $(VENV)/bin/activate
@@ -28,7 +28,7 @@ venv_install:
 	$(PIP) install -r $(BACK)/requirements.txt)
 
 npm_install:
-	(cd $(FRONT) && $(NPM) install)
+	(cd $(FRONT) && $(NPM) install && $(NPM) audit fix)
 
 npm_build:
 	(cd $(FRONT) && $(NPM) run build)
@@ -36,7 +36,7 @@ npm_build:
 clean:
 	rm -rf $(VENV)
 	rm -rf $(FRONT)/node_modules
-    rm -f $(FRONT)/package-lock.json
+	rm -f $(FRONT)/package-lock.json
 
 drop_all:
 	($(VENV_ACTIVATE) && $(PYTHON) $(BACK)/api/drop_all.py)
