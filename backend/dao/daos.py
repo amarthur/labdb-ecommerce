@@ -1,10 +1,14 @@
+import os
+import sys
 from typing import Any, Dict, List, Tuple
 
-import map_mongo
-import map_neo
-import map_sql
-from repos import MongoRepository, NeoRepository, SQLRepository, Transactor
+# Get relative imports to work when the package is not installed on the PYTHONPATH.
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from data_mappers import map_mongo, map_neo, map_sql
 from sqlalchemy.inspection import inspect
+
+from .repos import MongoRepository, NeoRepository, SQLRepository, Transactor
 
 
 class SqlDAO:
@@ -33,6 +37,9 @@ class SqlDAO:
     def get(self, entity_id: Any):
         return self.sql_repo.get(self.entity_class, entity_id)
 
+    def get_all(self):
+        return self.sql_repo.get_all(self.entity_class)
+
 
 class NeoDAO:
 
@@ -60,6 +67,9 @@ class NeoDAO:
 
     def get(self, entity_id: Any):
         return self.neo_repo.get(self.get_neo_node(entity_id))
+
+    def get_all(self):
+        return self.neo_repo.get_all(self.entity_class)
 
 
 class MongoDAO:
@@ -125,10 +135,10 @@ class DAO:
 
     def __init__(self, repo_class_tuples: Tuple[Any, Any] | List[Tuple[Any, Any]]):
         repo_class_tuples = self.ensure_list(repo_class_tuples)
-        repos = [repo_class_tuple[0] for repo_class_tuple in repo_class_tuples]
+        self.repos = [repo_class_tuple[0] for repo_class_tuple in repo_class_tuples]
 
         self.daos = [self.create_dao(repo_class_tuple) for repo_class_tuple in repo_class_tuples]
-        self.transactor = Transactor(repos)
+        self.transactor = Transactor(self.repos)
 
     @staticmethod
     def create_dao(repo_class_tuple: Tuple[Any, Any]):
@@ -162,10 +172,15 @@ class DAO:
             for dao in self.daos:
                 dao.delete(entity_id)
 
-    def get(self, entity_id: Any):
-        with self.transactor.transaction():
-            for dao in self.daos:
-                return dao.get(entity_id)
+    def get(self, entity_id: Any, repo_index: int = 0):
+        if (0 <= repo_index < len(self.repos)):
+            with self.transactor.transaction():
+                return self.daos[repo_index].get(entity_id)
+
+    def get_all(self, repo_index: int = 0):
+        if (0 <= repo_index < len(self.repos)):
+            with self.transactor.transaction():
+                return self.daos[repo_index].get_all()
 
 
 class CompanyDAO(DAO):

@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy import (ARRAY, CHAR, ForeignKey, ForeignKeyConstraint,
-                        Identity, Integer, PrimaryKeyConstraint, String, Text,
-                        create_engine)
+                        Identity, Integer, PrimaryKeyConstraint, String, Text)
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -190,9 +189,7 @@ class OrderHas(Base):
 
 
 def main():
-    SQL_URL = "postgresql+psycopg2://postgres:postgres@localhost/ecommerce"
-    engine = create_engine(SQL_URL)
-    Base.metadata.create_all(bind=engine)
+    pass
 
 
 if __name__ == '__main__':

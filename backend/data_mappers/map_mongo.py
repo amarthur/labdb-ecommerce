@@ -23,8 +23,10 @@ class Company(Document):
     _id = StringField(primary_key=True)
     ratings = ListField(ReferenceField(Rating, required=True, reverse_delete_rule=4))
 
+
 def main():
     pass
+
 
 if __name__ == "__main__":
     main()

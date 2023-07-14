@@ -1,7 +1,11 @@
+import json
+import os
+import sys
 from datetime import datetime
 
-import daos
-from repos import MongoRepository, NeoRepository, SQLRepository
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from dao import daos, repos
 
 
 def update_and_get(dao, entity_id, new_data):
@@ -368,16 +372,13 @@ def ex_relationships(sql_repo, neo_repo, mongo_repo):
 
 
 def main():
-    SQL_URL = 'postgresql+psycopg2://postgres:postgres@localhost/ecommerce'
-    NEO_URL = 'bolt://neo4j:password@localhost:7687'
-    MONGO_URL = 'mongodb://localhost:27017/ecommerce'
+    file_path = os.path.join(os.path.dirname(__file__), 'urls.json')
+    with open(file_path, 'r') as file:
+        config = json.load(file)
 
-    sql_repo = SQLRepository(SQL_URL)
-    neo_repo = NeoRepository(NEO_URL)
-    mongo_repo = MongoRepository(MONGO_URL)
-    sql_repo.create_connection()
-    neo_repo.create_connection()
-    mongo_repo.create_connection()
+    sql_repo = repos.SQLRepository(config['sql_url'])
+    neo_repo = repos.NeoRepository(config['neo_url'])
+    mongo_repo = repos.MongoRepository(config['mongo_url'])
 
     snm = (sql_repo, neo_repo, mongo_repo)
     ex_creation_delete(*snm)
